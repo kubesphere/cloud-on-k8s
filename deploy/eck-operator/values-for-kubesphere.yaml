@@ -1,0 +1,35 @@
+
+# nameOverride is the short name for the deployment. Leave empty to let Helm generate a name using chart values.
+nameOverride: "elastic-operator"
+
+# fullnameOverride is the full name for the deployment. Leave empty to let Helm generate a name using chart values.
+fullnameOverride: "elastic-operator"
+
+# installCRDs determines whether Custom Resource Definitions (CRD) are installed by the chart.
+# Note that CRDs are global resources and require cluster admin privileges to install.
+# If you are sharing a cluster with other users who may want to install ECK on their own namespaces, setting this to true can have unintended consequences.
+# 1. Upgrades will overwrite the global CRDs and could disrupt the other users of ECK who may be running a different version.
+# 2. Uninstalling the chart will delete the CRDs and potentially cause Elastic resources deployed by other users to be removed as well.
+installCRDs: true
+
+# resources define the container resource limits for the operator.
+resources:
+  limits:
+    cpu: 1
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 150Mi
+
+# replicaCount is the number of operator pods to run.
+replicaCount: 1
+
+
+# no tls certs for eck operator
+webhook:
+  enabled: false
+
+
+
+
+
