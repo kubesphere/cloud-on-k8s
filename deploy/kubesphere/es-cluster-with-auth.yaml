@@ -8,7 +8,7 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
-  version: 7.10.2
+  version: 7.11.1
   nodeSets:
   - name: master
     count: 3
@@ -32,13 +32,13 @@ spec:
         - name: elasticsearch
           env:
           - name: ES_JAVA_OPTS
-            value: -Xms1g -Xmx1g
+            value: -Xms512m -Xmx512m
           resources:
             requests:
-              memory: 2Gi
-              cpu: "1000m"
+              memory: 512Mi
+              cpu: "512m"
             limits:
-              memory: 2Gi
+              memory: 1Gi
               cpu: "1000m"
           readinessProbe:
             failureThreshold: 3
@@ -69,9 +69,6 @@ spec:
           command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
         containers:
         - name: elasticsearch
-          env:
-          - name: ES_JAVA_OPTS
-            value: -Xms1g -Xmx1g
           resources:
             requests:
               memory: 2Gi
@@ -89,4 +86,3 @@ spec:
         resources:
           requests:
             storage: 20Gi
-        storageClassName: csi-standard
