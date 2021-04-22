@@ -1,8 +1,8 @@
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
-  name: kubesphere-es-cluster
-  namespace: default
+  name: kubesphere-eck
+  namespace: kubesphere-logging-system
 spec:
   http:
     tls:
@@ -11,7 +11,7 @@ spec:
   version: 7.11.1
   nodeSets:
   - name: master
-    count: 3
+    count: 1
     config:
       # On Elasticsearch versions before 7.9.0, replace the node.roles configuration with the following:
       # node.master: true
@@ -51,7 +51,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
   - name: data
-    count: 3
+    count: 2
     config:
       # On Elasticsearch versions before 7.9.0, replace the node.roles configuration with the following:
       # node.master: false
@@ -71,12 +71,13 @@ spec:
         - name: elasticsearch
           resources:
             requests:
-              memory: 2Gi
+              memory: 1Gi
               cpu: "1000m"
             limits:
-              memory: 4Gi
+              memory: 2Gi
         volumes:
         - name: elasticsearch-data
+    # PV storage should be adjusted to 20Gi+
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data

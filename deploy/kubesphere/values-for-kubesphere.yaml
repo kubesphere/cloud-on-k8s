@@ -30,7 +30,7 @@ image:
   # pullPolicy is the container image pull policy.
   pullPolicy: IfNotPresent
   # tag is the container image tag. If not defined, defaults to chart appVersion.
-  tag: 1.4.0
+  tag: 1.5.0
 
 
 # no tls certs for eck operator
