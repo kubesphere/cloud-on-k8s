@@ -74,7 +74,7 @@ spec:
               memory: 1Gi
               cpu: "1000m"
             limits:
-              memory: 2Gi
+              memory: 32Gi
         volumes:
         - name: elasticsearch-data
     # PV storage should be adjusted to 20Gi+
