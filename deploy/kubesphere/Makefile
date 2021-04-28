@@ -19,7 +19,8 @@ OUTPUT ?={"spec":{"es":{"host":"$(ENDPOINT)","httpPassword":{"valueFrom":{"secre
 
 createSecrets:
 	@echo "\n======start to create secrets elasticsearch-credentials====="
-	-kubectl -n $(NAMESPACE) create secret generic elasticsearch-credentials --from-literal="username=$(ES_USERNAME)" --from-literal="password=$(ES_PASSWORD)" --type=kubernetes.io/basic-auth 2> /dev/null 
+	-kubectl -n $(NAMESPACE) delete secret generic elasticsearch-credentials 
+	kubectl -n $(NAMESPACE) create secret generic elasticsearch-credentials --from-literal="username=$(ES_USERNAME)" --from-literal="password=$(ES_PASSWORD)" --type=kubernetes.io/basic-auth
 	
 pullConfig:
 	@echo "\n======start to pull kubesphere config====="
@@ -31,9 +32,9 @@ PATCH_CONTENT:='/^(\s+logging:)|(\s+events:)|(\s+auditing:)/a\      basicAuth: t
 
 handleConfig:
 	@echo "\n======start to patch configmap kubesphere-config for logging======"
-	-sed -i -e $(PATCH_HOST)  /tmp/kubesphere-config.yaml
+	sed -i -e $(PATCH_HOST)  /tmp/kubesphere-config.yaml
 	-sed -i -e $(PATCH_HOST)  /tmp/curator.yaml
-	-sed -i -E $(PATCH_CONTENT) /tmp/kubesphere-config.yaml	
+	sed -i -E $(PATCH_CONTENT) /tmp/kubesphere-config.yaml	
 
 output: 
 	@echo "\n======start to patch fluentbit outputs======="
@@ -44,7 +45,8 @@ output:
 apply:
 	@echo "\n======start to apply configs======="
 	kubectl apply -f /tmp/kubesphere-config.yaml
-	kubectl apply -f /tmp/curator.yaml
+	-kubectl apply -f /tmp/curator.yaml
+	kubectl -n kubesphere-system rollout restart deployment ks-apiserver
 
 access: access-curl
 
