@@ -51,11 +51,11 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
         volumes:
-        - name: elasticsearch-data
+        - name: elasticsearch-master
     # PV storage should be adjusted to 20Gi+
     volumeClaimTemplates:
     - metadata:
-        name: elasticsearch-data
+        name: elasticsearch-master
       spec:
         accessModes:
         - ReadWriteOnce
