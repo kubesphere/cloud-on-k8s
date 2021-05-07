@@ -415,27 +415,31 @@ E2E_DEPLOY_CHAOS_JOB       ?= false
 E2E_TAGS                   ?= e2e  # go build constraints potentially restricting the tests to run
 E2E_TEST_ENV_TAGS          ?= ""   # tags conveying information about the test environment to the test runner
 
-# clean to remove irrelevant/build-breaking generated public keys
-e2e-docker-build: clean
-	DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg E2E_JSON=$(E2E_JSON) --build-arg GO_TAGS=$(E2E_TAGS) \
+# combine e2e tags (es, kb, apm etc.)  with go tags (release) to ensure test code that imports generated code works
+# this relies on the deprecated space separated build constraints in Go which makes construction in make easier
+E2E_TAGS += $(GO_TAGS)
+export E2E_TAGS
+
+e2e-docker-build: go-generate
+	DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg E2E_JSON=$(E2E_JSON) --build-arg E2E_TAGS='$(E2E_TAGS)' \
        -t $(E2E_IMG) -f test/e2e/Dockerfile .
 
 e2e-docker-push:
 	@ hack/docker.sh -l -p $(E2E_IMG)
 
-e2e-docker-multiarch-build: clean
+e2e-docker-multiarch-build: go-generate
 	@ hack/docker.sh -l -m $(E2E_IMG)
 	docker buildx build \
 		--progress=plain \
 		--file test/e2e/Dockerfile \
 		--build-arg E2E_JSON=$(E2E_JSON) \
-		--build-arg GO_TAGS=$(E2E_TAGS) \
+		--build-arg E2E_TAGS='$(E2E_TAGS)' \
 		--platform linux/amd64,linux/arm64 \
 		--push \
 		-t $(E2E_IMG) .
 
-e2e-run:
-	@go run test/e2e/cmd/main.go run \
+e2e-run: go-generate
+	@go run -tags='$(GO_TAGS)' test/e2e/cmd/main.go run \
 		--operator-image=$(OPERATOR_IMAGE) \
 		--e2e-image=$(E2E_IMG) \
 		--test-regex=$(TESTS_MATCH) \
@@ -458,15 +462,14 @@ e2e-generate-xml:
 	@ hack/ci/generate-junit-xml-report.sh e2e-tests.json
 
 # Verify e2e tests compile with no errors, don't run them
-e2e-compile:
-	@go test ./test/e2e/... -run=dryrun -tags=$(E2E_TAGS) $(TEST_OPTS) > /dev/null
+e2e-compile: go-generate
+	@go test ./test/e2e/... -run=dryrun -tags='$(E2E_TAGS)' $(TEST_OPTS) > /dev/null
 
 # Run e2e tests locally (not as a k8s job), with a custom http dialer
 # that can reach ES services running in the k8s cluster through port-forwarding.
 e2e-local: LOCAL_E2E_CTX := /tmp/e2e-local.json
-e2e-local: export GO_TAGS=$(E2E_TAGS)
-e2e-local:
-	@go run test/e2e/cmd/main.go run \
+e2e-local: go-generate
+	@go run -tags '$(GO_TAGS)' test/e2e/cmd/main.go run \
 		--test-run-name=e2e \
 		--operator-image=$(OPERATOR_IMAGE) \
 		--test-context-out=$(LOCAL_E2E_CTX) \
